@@ -1,42 +1,47 @@
 <template>
   <v-app>
-    <v-app-bar app color="primary" dark>
-      <div class="d-flex align-center">
-        <v-img
-          alt="Vuetify Logo"
-          class="shrink mr-2"
-          contain
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-logo-dark.png"
-          transition="scale-transition"
-          width="40"
-        />
-
-        <v-img
-          alt="Vuetify Name"
-          class="shrink mt-1 hidden-sm-and-down"
-          contain
-          min-width="100"
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-name-dark.png"
-          width="100"
-        />
-      </div>
-
-      <v-spacer></v-spacer>
-    </v-app-bar>
-
-    <v-main>
-      <v-btn target="_blank" @click="readAllCocktails()">
-        <span>Add cocktail</span>
-      </v-btn>
-      <div>{{ allCocktails }}</div>
+    <v-main class="pa-5">
+      <v-container>
+        <v-row justify="center">
+          <v-col md="4">
+            <v-combobox
+            label="Select ingredients"
+              v-model="userIngredients"
+              :items="all_ingredients"
+              chips
+              multiple
+            >
+            </v-combobox>
+          </v-col>
+        </v-row>
+      </v-container>
+      <v-container fluid>
+        <v-row no-gutters>
+          <v-col
+            v-for="(cocktail, i) in filtered_cocktail_list"
+            :key="i"
+            md="4"
+          >
+            <v-card class="pa-5 ma-5 blue-grey--text" style="height: 300px">
+              <div class="headline">
+                <b>{{ cocktail.name }}</b>
+              </div>
+              <div>{{ cocktail.instructions }}</div>
+              <div v-for="(ingredient, i) in cocktail.ingredients" :key="i">
+                <b>{{ ingredient }}: </b>{{ cocktail.measurements[i] }}
+              </div>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-container>
     </v-main>
   </v-app>
 </template>
 
 <script>
 import firebase from "./firebase";
-// import axios from "axios";
 const db = firebase.firestore();
+const cocktailDb = db.collection("cocktails");
 
 export default {
   name: "App",
@@ -50,33 +55,47 @@ export default {
       measurements: [],
     },
     allCocktails: [],
+    userIngredients: [],
   }),
-  methods: {
-    readAllCocktails() {
-      let cocktailsData = [];
-      db.collection("cocktails")
-        .get()
-        .then((querySnapshot) => {
-          querySnapshot.forEach((doc) => {
-           cocktailsData.push({
-              id: doc.id,
-              name: doc.data().name,
-              instructions: doc.data().instructions,
-              ingredients: doc.data().ingredients,
-              measurements: doc.data().measurements
-            });
-            console.log(doc.id, " => ", doc.data());
-          });
-          this.allCocktails = cocktailsData
-          return cocktailsData
-        })
-        .catch((error) => {
-          console.log("Error getting documents: ", error);
-        });
-      
-      
-    }
 
+  created() {
+    let cocktailsData = [];
+    cocktailDb
+      .orderBy("name")
+      .get()
+      .then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+          cocktailsData.push({
+            id: doc.id,
+            name: doc.data().name,
+            instructions: doc.data().instructions,
+            ingredients: doc.data().ingredients,
+            measurements: doc.data().measurements,
+          });
+        });
+        this.allCocktails = cocktailsData;
+      })
+      .catch((error) => {
+        console.log("Error getting documents: ", error);
+      });
+  },
+  computed: {
+    filtered_cocktail_list() {
+      let checker = (arr, target) => target.every((v) => arr.includes(v));
+      return this.allCocktails.filter((cocktail) => {
+        return checker(cocktail.ingredients, this.userIngredients);
+      });
+    },
+
+    all_ingredients() {
+      var res = [];
+      this.allCocktails.forEach((cocktail) => {
+        res = res.concat(cocktail.ingredients);
+      });
+      return res;
+    },
+  },
+  methods: {
     // getCocktailsByLetter(letter) {
     //   var path =
     //     "https://www.thecocktaildb.com/api/json/v1/1/search.php?f=" + letter;
@@ -101,7 +120,6 @@ export default {
     //     this.getCocktailsByLetter(letter);
     //   });
     // },
-
     // formatCocktail(drink) {
     //   var ingredients = [];
     //   var measurements = [];
@@ -123,7 +141,6 @@ export default {
     //   this.cocktail.measurements = measurements;
     //   this.addCocktail();
     // },
-
     // addCocktail() {
     //   db.collection("cocktails")
     //     .add({
