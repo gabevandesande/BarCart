@@ -1,11 +1,12 @@
 <template>
   <v-app>
     <v-main class="pa-5">
-      <v-container>
+      <v-container class="section">
+        <v-row><h1>BarCart</h1></v-row>
         <v-row justify="center">
           <v-col md="4">
             <v-combobox
-            label="Select ingredients"
+              label="Select ingredients"
               v-model="userIngredients"
               :items="all_ingredients"
               chips
@@ -15,18 +16,18 @@
           </v-col>
         </v-row>
       </v-container>
-      <v-container fluid>
+      <v-container fluid class="section">
         <v-row no-gutters>
           <v-col
             v-for="(cocktail, i) in filtered_cocktail_list"
             :key="i"
             md="4"
           >
-            <v-card class="pa-5 ma-5 blue-grey--text" style="height: 300px">
-              <div class="headline">
+            <v-card class="pa-5 ma-5 blue-grey--text" style="height: 400px">
+              <div class="headline pb-2">
                 <b>{{ cocktail.name }}</b>
               </div>
-              <div>{{ cocktail.instructions }}</div>
+              <div class="pb-2">{{ cocktail.instructions }}</div>
               <div v-for="(ingredient, i) in cocktail.ingredients" :key="i">
                 <b>{{ ingredient }}: </b>{{ cocktail.measurements[i] }}
               </div>
@@ -69,7 +70,7 @@ export default {
             id: doc.id,
             name: doc.data().name,
             instructions: doc.data().instructions,
-            ingredients: doc.data().ingredients,
+            ingredients: doc.data().ingredients.map((i) => i.toLowerCase()),
             measurements: doc.data().measurements,
           });
         });
@@ -83,16 +84,20 @@ export default {
     filtered_cocktail_list() {
       let checker = (arr, target) => target.every((v) => arr.includes(v));
       return this.allCocktails.filter((cocktail) => {
-        return checker(cocktail.ingredients, this.userIngredients);
+        if (this.userIngredients.length == 0) {
+          return true;
+        } else {
+          return checker(this.userIngredients, cocktail.ingredients);
+        }
       });
     },
 
     all_ingredients() {
       var res = [];
       this.allCocktails.forEach((cocktail) => {
-        res = res.concat(cocktail.ingredients);
+        res = res.concat(cocktail.ingredients.map((i) => i.toLowerCase()));
       });
-      return res;
+      return res.sort();
     },
   },
   methods: {
@@ -159,3 +164,8 @@ export default {
   },
 };
 </script>
+<style lang="css">
+.section {
+  width: 1366px !important;
+}
+</style>
