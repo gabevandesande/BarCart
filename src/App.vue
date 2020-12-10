@@ -3,12 +3,23 @@
     <v-main class="pa-5">
       <v-container class="section">
         <v-row><h1>BarCart</h1></v-row>
+        <v-row justify="center"><h3>What do you have lying around?</h3></v-row>
         <v-row justify="center">
-          <v-col md="4">
+          <v-col md="3">
+            <v-combobox
+              label="Select Spirits"
+              v-model="user_spirits"
+              :items="all_spirits"
+              chips
+              multiple
+            >
+            </v-combobox>
+          </v-col>
+          <v-col md="3">
             <v-combobox
               label="Select ingredients"
-              v-model="userIngredients"
-              :items="all_ingredients"
+              v-model="user_other_ingredients"
+              :items="all_ingredients_except_spirits"
               chips
               multiple
             >
@@ -17,6 +28,10 @@
         </v-row>
       </v-container>
       <v-container fluid class="section">
+        <div v-if="filtered_cocktail_list.length == 0">
+          No recipes found with only selected ingredients, try selecting some
+          more!
+        </div>
         <v-row no-gutters>
           <v-col
             v-for="(cocktail, i) in filtered_cocktail_list"
@@ -56,7 +71,16 @@ export default {
       measurements: [],
     },
     allCocktails: [],
-    userIngredients: [],
+    user_spirits: [],
+    otherAlcohols: [
+      "prosecco",
+      "beer(Lager)",
+      "champagne",
+      "wine(red)",
+      "wine(white)",
+      "cider",
+    ],
+    user_other_ingredients: [],
   }),
 
   created() {
@@ -84,23 +108,60 @@ export default {
     filtered_cocktail_list() {
       let checker = (arr, target) => target.every((v) => arr.includes(v));
       return this.allCocktails.filter((cocktail) => {
-        if (this.userIngredients.length == 0) {
+        if (this.user_ingredients.length == 0) {
           return true;
         } else {
-          return checker(this.userIngredients, cocktail.ingredients);
+          return checker(this.user_ingredients, cocktail.ingredients);
         }
       });
     },
 
-    all_ingredients() {
+    all_ingredients_except_spirits() {
       var res = [];
       this.allCocktails.forEach((cocktail) => {
         res = res.concat(cocktail.ingredients.map((i) => i.toLowerCase()));
       });
+      res = res.filter((i) => {
+        if (this.all_spirits.includes(i)) {
+          return false;
+        } else {
+          return true;
+        }
+      });
       return res.sort();
     },
+
+    all_spirits() {
+      return [
+        "vodka",
+        "gin",
+        "whiskey",
+        "rum (Light)",
+        "rum (Dark)",
+        "cognac",
+        "scotch",
+        "bourbon",
+        "brandy",
+        "rum",
+        "everclear",
+        "rum (Spiced)",
+        "grain alcohol",
+        "cachaca",
+        "absinthe",
+        "tequila",
+        "mezcal",
+        "sherry",
+      ];
+    },
+
+    user_ingredients() {
+      return [...this.user_spirits, ...this.user_other_ingredients]
+    }
   },
   methods: {
+    formatArrayCapitalize(a) {
+      return a.map((i) => i.charAt(0).toUpperCase() + i.slice(1));
+    },
     // getCocktailsByLetter(letter) {
     //   var path =
     //     "https://www.thecocktaildb.com/api/json/v1/1/search.php?f=" + letter;
