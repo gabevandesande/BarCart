@@ -3,7 +3,7 @@
     <v-main class="pa-5">
       <v-container class="section">
         <v-row><h1>BarCart</h1></v-row>
-        <v-row justify="center"><h3>What do you have lying around? </h3></v-row>
+        <v-row justify="center"><h3> What do you have lying around? </h3></v-row>
         <v-row justify="center">
           <v-col md="3">
             <v-combobox
