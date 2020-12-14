@@ -12,10 +12,11 @@
               :items="all_spirits"
               chips
               multiple
+              class="text-capitalize"
             >
             </v-combobox>
           </v-col>
-          <v-col md="3">
+          <v-col lg="3" md="6">
             <v-combobox
               label="Select ingredients"
               v-model="user_other_ingredients"
@@ -36,7 +37,10 @@
           <v-col
             v-for="(cocktail, i) in filtered_cocktail_list"
             :key="i"
-            md="4"
+            lg="4"
+            md="6"
+            sm="12"
+            xs="12"
           >
             <v-card class="pa-5 ma-5 blue-grey--text" style="height: 400px">
               <div class="headline pb-2">
@@ -151,7 +155,7 @@ export default {
         "tequila",
         "mezcal",
         "sherry",
-      ];
+      ].sort();
     },
 
     user_ingredients() {
