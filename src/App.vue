@@ -1,9 +1,9 @@
 <template>
   <v-app>
+    <app-navigation></app-navigation>
     <v-main class="pa-5">
       <v-container class="section">
-        <v-row><h1>BarCart</h1></v-row>
-        <v-row justify="center"><h3> What do you have lying around? </h3></v-row>
+        <v-row justify="center"><h3>What do you have lying around?</h3></v-row>
         <v-row justify="center">
           <v-col md="3">
             <v-combobox
@@ -60,12 +60,13 @@
 
 <script>
 import firebase from "./firebase";
+import AppNavigation from "./components/AppNavigation.vue";
 const db = firebase.firestore();
 const cocktailDb = db.collection("cocktails");
 
 export default {
   name: "App",
-  components: {},
+  components: { AppNavigation },
 
   data: () => ({
     cocktail: {
@@ -107,6 +108,20 @@ export default {
       .catch((error) => {
         console.log("Error getting documents: ", error);
       });
+
+    var local_storage_spirits = window.localStorage.getItem("user_spirits");
+    var local_storage_ingredients = window.localStorage.getItem(
+      "user_other_ingredients"
+    );
+    if (local_storage_spirits != null && local_storage_spirits != undefined) {
+      this.user_spirits = JSON.parse(local_storage_spirits);
+    }
+    if (
+      local_storage_ingredients != null &&
+      local_storage_spirits != undefined
+    ) {
+      this.user_other_ingredients = JSON.parse(local_storage_ingredients);
+    }
   },
   computed: {
     filtered_cocktail_list() {
@@ -159,8 +174,8 @@ export default {
     },
 
     user_ingredients() {
-      return [...this.user_spirits, ...this.user_other_ingredients]
-    }
+      return [...this.user_spirits, ...this.user_other_ingredients];
+    },
   },
   methods: {
     formatArrayCapitalize(a) {
@@ -226,6 +241,16 @@ export default {
     //       console.error("Error writing document: ", error);
     //     });
     // },
+  },
+  watch: {
+    user_spirits() {
+      var spirits_json = JSON.stringify(this.user_spirits);
+      window.localStorage.setItem("user_spirits", spirits_json);
+    },
+    user_other_ingredients() {
+      var ingredients_json = JSON.stringify(this.user_other_ingredients);
+      window.localStorage.setItem("user_other_ingredients", ingredients_json);
+    },
   },
 };
 </script>
